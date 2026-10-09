@@ -1,110 +1,114 @@
-# zeronode-ir-control
-ZeroNode IR Control - a powerful ESP32-C3 universal infrared remote with learning, replay and expandable device libraries.
-# ZeroNode IR Control
+# 📡 ZeroNode IR Control
 
-ZeroNode IR Control is a universal infrared remote controller based on the ESP32-C3 Super Mini.
+> **ESP32-C3 Super Mini + OLED - a compact universal infrared remote for your own compatible devices.**
 
-The project is designed for TVs, air conditioners and other devices that use infrared remote controls. It includes an OLED interface, two-button navigation, IR signal learning, signal replay and support for a high-power external IR transmitter module.
+<p align="center">
+  <img alt="ESP32-C3" src="https://img.shields.io/badge/MCU-ESP32--C3-00979D?logo=espressif&logoColor=white" />
+  <img alt="OLED" src="https://img.shields.io/badge/Display-SSD1306%20128x64-5B8CFF" />
+  <img alt="IR" src="https://img.shields.io/badge/IR-Learn%20%7C%20Replay-FF5C5C" />
+  <img alt="Storage" src="https://img.shields.io/badge/Memory-6%20slots-F39C12" />
+  <img alt="Expansion" src="https://img.shields.io/badge/Expansion-microSD%20planned-7B61FF" />
+</p>
 
-## Current project status
+ZeroNode IR Control is a DIY universal infrared remote built around an **ESP32-C3 Super Mini**, a **128x64 I2C OLED**, an IR receiver and an external IR transmitter module. It can learn compatible infrared commands, save them in ESP32 memory and replay the selected command.
 
-The current firmware is an early working version with these features:
+The project is designed as a small standalone build: two buttons, an on-device display, local signal storage and no mobile app or external server required.
 
-- ZeroNode startup animation on a 0.96 inch SSD1306 OLED
-- English on-device menu
-- Two-button navigation
-- IR signal learning through a demodulating receiver
-- Raw signal storage in ESP32 flash
-- Signal replay through the external IR transmitter
-- Six internal command slots
-- Support for long raw frames used by many air conditioner remotes
+> [!WARNING]
+> Use this project only with equipment that you own or are expressly authorized to control. Verify every module's voltage, current requirement and pin labels before applying power. A high-power IR transmitter must use a suitable power supply and must not be powered from the ESP32 3V3 pin.
 
-The current source file is kept locally in `private-source/` for development. It should not be uploaded to the public repository. Public releases are planned as compiled `.bin` files.
+## ✨ Features
 
-## Planned firmware versions
+- 📥 **RAW IR learning** from a demodulating infrared receiver;
+- 📤 **RAW IR replay** through an external IR transmitter module;
+- 💾 **6 command slots** stored in ESP32 non-volatile memory;
+- ❄️ support for longer recorded frames used by many air conditioner remotes;
+- 🖥️ OLED status screens for learning, sending, library slots and settings;
+- 🎛️ two-button interface for navigation, selection and command sending;
+- 🗑️ clearing of a saved command slot;
+- 💳 planned microSD expansion for larger device libraries.
 
-The project may be released in several firmware variants:
+## ⚙️ Hardware
 
-1. Basic firmware with no preloaded device library
-2. Firmware with a small built-in library for common TV brands
-3. Firmware with an extended library loaded from a microSD card
+| Part | Quantity | Notes |
+|---|---:|---|
+| ESP32-C3 Super Mini | 1 | Main controller |
+| SSD1306 OLED, 128x64, I2C | 1 | Firmware uses I2C address `0x3C` |
+| Momentary push buttons | 2 | NEXT and OK |
+| Demodulating IR receiver | 1 | Typical 38 kHz receiver module |
+| IR transmitter module | 1 | Module with `IN`, `5V` and `GND` |
+| TP4056 module | Optional | For a protected 1-cell Li-ion battery |
+| 5 V boost converter | Optional | Required when the transmitter needs 5 V from a Li-ion cell |
+| microSD SPI module | Planned | For expanded command libraries |
 
-The long-term goal is one universal firmware that uses the built-in library when no card is present and automatically loads an extended library when a compatible microSD card is detected.
+## 🔌 Wiring
 
-## Hardware
+This table is checked against the current firmware pin definitions. All modules share a common ground. The buttons use `INPUT_PULLUP`: connect one side of each button to its GPIO and the other side to **GND**. No external pull-up resistors are required.
 
-- ESP32-C3 Super Mini
-- 0.96 inch 128x64 SSD1306 I2C OLED
-- Two momentary push buttons
-- Demodulating IR receiver module
-- Ready-made high-power IR transmitter module with `IN`, `5V` and `GND`
-- Optional TP4056 charging and protection module
-- Optional single-cell Li-ion battery
-- Optional 5 V boost converter for the transmitter and ESP32 5 V input
-- Optional microSD SPI module
-
-## Pinout
-
-| Component | Pin | ESP32-C3 pin |
-| --- | --- | --- |
-| OLED | VCC | 3V3 |
-| OLED | GND | GND |
-| OLED | SDA | GPIO5 |
-| OLED | SCL | GPIO6 |
-| Next button | one side | GPIO0 |
-| Next button | other side | GND |
-| OK button | one side | GPIO1 |
-| OK button | other side | GND |
+| Device | Signal | ESP32-C3 Super Mini |
+|---|---|---:|
+| OLED SSD1306 | VCC | 3V3 |
+| OLED SSD1306 | GND | GND |
+| OLED SSD1306 | SDA | GPIO5 |
+| OLED SSD1306 | SCL | GPIO6 |
 | IR transmitter | IN / SIG | GPIO3 |
-| IR transmitter | GND | GND |
 | IR transmitter | 5V | regulated 5 V supply |
+| IR transmitter | GND | GND |
 | IR receiver | OUT | GPIO4 |
 | IR receiver | VCC | 3V3 |
 | IR receiver | GND | GND |
+| NEXT button | Signal | GPIO0 |
+| OK button | Signal | GPIO1 |
 
-The transmitter input is GPIO3 in the current firmware. GPIO4 is reserved for the future IR receiver output.
+> [!IMPORTANT]
+> The current firmware uses **GPIO3** for the transmitter input and **GPIO4** for the receiver output. Do not swap these pins. The transmitter power must come from a supply that can provide the current required by the specific module.
 
-## Power and safety
+## 🎛️ Controls
 
-The high-power IR transmitter must not be powered from the ESP32 3V3 output. Use a stable supply that matches the markings on the transmitter module. If the module requires 5 V, use a 5 V boost converter when running from a single Li-ion cell.
+| Button | Short press | Long press |
+|---|---|---|
+| `NEXT` - GPIO0 | Move through menu items or slots | - |
+| `OK` - GPIO1 | Select, learn or send | Return to the home screen |
 
-For a TP4056 charging circuit:
+To learn a command, select **Scan**, press `OK`, point the original remote at the receiver, then press the required button on the original remote. The captured signal is saved in the active slot.
+
+## 🧠 How it works
+
+The IR receiver outputs a demodulated timing signal. During learning, ZeroNode IR Control stores the mark and space durations of a compatible remote command. During sending, the saved durations are replayed through the transmitter with a 38 kHz carrier.
+
+This is intentionally RAW replay. It does not claim to identify every remote protocol, recover protected data or guarantee compatibility with every device. Some devices use a different carrier frequency, an unusual timing format or an encrypted protocol.
+
+### Compatibility limits
+
+- **TV and media remotes:** commonly use IR protocols that can be learned and replayed when timing and carrier frequency match.
+- **Air conditioner remotes:** often send a complete state packet containing temperature, mode, fan speed and other settings. A recorded RAW signal can replay that exact state, but it does not create a full editable AC interface by itself.
+- **Other IR devices:** compatibility depends on the receiver frequency, transmitter strength and original protocol.
+
+## 💳 microSD expansion
+
+An extended device library is planned for a microSD card. The recommended first target is a **4 GB, 8 GB or 16 GB microSD or microSDHC card formatted as FAT32**.
+
+The card will store command-library data, not automatically update the ESP32 firmware. Larger cards may use exFAT and require different filesystem support.
+
+## 📁 Repository layout
 
 ```text
-Battery positive  -> TP4056 B+
-Battery negative  -> TP4056 B-
-TP4056 OUT+       -> power switch -> boost converter IN+
-TP4056 OUT-       -> common GND   -> boost converter IN-
-Boost OUT+ 5 V    -> ESP32 5V and transmitter 5V
-Boost OUT-        -> common GND
+zeronode-ir-control/
+├── README.md
+├── docs/
+│   └── pinout.md
+└── firmware/
+    ├── zeronode-ir-basic.bin
+    ├── zeronode-ir-library.bin
+    └── zeronode-ir-sd.bin
 ```
 
-The transmitter module must be checked before use. A 3 W rating can require a substantial current, and the ESP32 5 V pin or a USB source may not be suitable as its power supply.
+The repository is planned to publish compiled ESP32-C3 firmware images in the `firmware/` folder. The first release may contain only the Basic firmware. Library and microSD versions will be added as they are completed and tested.
 
-## microSD plan
+## 📜 License
 
-The recommended first target is a 4 GB, 8 GB or 16 GB microSD card formatted as FAT32. Very large cards may use exFAT and may require a different filesystem library. Cheap cards should be tested because their advertised capacity may be inaccurate.
+No license has been selected yet. Until one is added, this repository does not grant permission to reuse, modify or redistribute its contents.
 
-The microSD card is planned for command library data. It does not automatically update the ESP32 firmware unless a separate firmware update feature is implemented.
+---
 
-## Releases
-
-Firmware binaries will be published through GitHub Releases, for example:
-
-```text
-zeronode-ir-basic.bin
-zeronode-ir-library.bin
-zeronode-ir-sd.bin
-```
-
-The `.bin` files are compiled firmware images. The source code is currently kept private during development.
-
-## License
-
-This repository currently has no open-source license. Unless a separate written permission is provided, the firmware binaries, branding, documentation and project assets may not be copied, modified, redistributed or used in derivative products.
-
-Copyright (c) 2026 ZeroNodeDIY.
-
-## Disclaimer
-
-This is a DIY electronics project. Verify the voltage, current and pin labels of every module before connecting power. The author is not responsible for damage caused by incorrect wiring, unsuitable power supplies or modified firmware.
+Built by [@ZeroNodeDIY](https://github.com/ZeroNodeDIY) · ESP32-C3 · IR · OLED
